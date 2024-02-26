@@ -1,0 +1,2 @@
+
+call toolkit\cli.exe %*
