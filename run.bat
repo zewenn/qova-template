@@ -1,2 +1,2 @@
 
-call toolkit\cli.exe %*
+call toolkit\main.exe %*
