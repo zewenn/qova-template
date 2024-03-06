@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "esbuild": "^0.20.1"
+    "esbuild": "^0.20.1",
+    "htm": "^3.1.1",
+    "preact": "^10.19.6"
   }
 }

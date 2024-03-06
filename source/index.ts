@@ -1,12 +1,25 @@
 import { Match, Resoult, printf } from "../std/std";
+import { $, Main } from "../std/std.dom";
 
-const m = new Map<any, string>([
-    [0, "1"],
-    ["_", "1"],
-]);
+// printf(Match<string>("v", { hello: 10, _: 10, asd: 20 }));
 
-for (let [_, val] of m) {
-    printf(val);
-}
+Main(() => {
+    console.log("Hello");
+})
 
-printf(Match<string>("v", { hello: 10, _: 10, asd: 20 }));
+
+/**
+ *
+ * Match(val: any, {
+ *      ["_", () => {
+ *          printf("Well shit");
+ *      }]
+ *
+ *
+ *      _: () => {
+ *          printf("Well shit");
+ *      }
+ * })
+ *
+ *
+ */

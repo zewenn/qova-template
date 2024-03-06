@@ -1,6 +1,34 @@
+/**
+ * Basic definition of an arrow function or lambda
+ */
+export type lambda<T extends any = void> = (...args: any[]) => T;
+
+/**
+ * A function which returns a `Resoult<T, Err>` value will always return, even if it encountered an error.
+ * When the function wants to throw an error, the error will be returned.
+ */
 export type Resoult<T, Err extends Error> = T | Err;
+/**
+ * A function which returns a `Option<T>` might return `undefined`.
+ */
+export type Option<T> = T | undefined;
+
+
+/**
+ * A function which returns a `Trust<T>` value might not return, and it can call `PANIC` instead.
+ */
+export type Trust<T> = T | never;
+
+/**
+ * A value marked as `Ref` is also used somewhere else in the codebase. If changed, it will change everywhere.
+ */
 export type Ref<T extends Object> = T & { __phantom__: "Reference" };
+
+/**
+ * A value marked as `Val` is a duplicate of another value; use this as you wish since it won't break anything.
+ */
 export type Val<T> = T & { __phantom__: "Value" };
+
 export type Matcher<T extends string | number | symbol> = {
     [key in T]: any;
 } & {
@@ -10,29 +38,33 @@ export type Matcher<T extends string | number | symbol> = {
 type MissingKeys<T extends K, K> = Pick<T, Exclude<keyof T, keyof K>>;
 
 /**
- * A binding to `console.log`
+ * # printf
+ * Bassic binding to `console.log` for easier use. If used without special params, just calls `console.log`.
+ * ## Warn
+ * If the `"!w"` flag is used `console.warn` will be called.
+ * ## Error
+ * If the `"!e"` flag is used `console.error` will be called.
  */
-export const printf = console.log;
+export const printf = (...message: any[]) => {
+    if (message.includes("!w")) {
+        message.splice(message.indexOf("!w"), 1);
+        console.warn(...message);
+        return;
+    }
+    if (message.includes("!e")) {
+        message.splice(message.indexOf("!e"), 1);
+        console.error(...message);
+        return;
+    }
+    console.log(...message);
+};
 
 /**
- * ### **DO NOT USE UNLESS YOU ARE 200% SURE ABOUT THIS**
- * This will cast the **`value`** as **`unknown`** and then to **`T`**.
- * @param value
- * @returns
+ * Stop the program from executing by throwing an error.
+ * @param msg
  */
-export function ForceCast<T>(value: any): T {
-    return value as unknown as T;
-}
-
-/**
- * Converts from a type (**F**) to another type (**T**), but only if **T** extends **F**
- * ### Note:
- * This will only Cast the type, **it won't change to object**.
- * @param value
- * @returns
- */
-export function Cast<F, T extends F>(value: F): T {
-    return value as T;
+export function PANIC(msg: string): never {
+    throw new Error(msg);
 }
 
 /**
@@ -41,10 +73,13 @@ export function Cast<F, T extends F>(value: F): T {
  * This will extend the original object!
  * @param obj The object you wish to convert cast
  * @param missing The missing keys of the new object type
- * @returns 
+ * @returns
  */
-export function ConvertCast<F, T extends F>(obj: F, missing?: MissingKeys<T, F>) {
-    const res: T = Cast<F, T>(obj);
+export function ConvertCast<F, T extends F>(
+    obj: F,
+    missing?: MissingKeys<T, F>
+) {
+    const res: T = <T>(obj);
     if (missing) {
         for (const key in missing) {
             res[key] = missing[key];
@@ -55,35 +90,35 @@ export function ConvertCast<F, T extends F>(obj: F, missing?: MissingKeys<T, F>)
 
 /**
  * Marks a value as a `Ref` to explicitly state that it will change somewhere else.
- * @param value 
- * @returns 
+ * @param value
+ * @returns
  */
-export function useRef<T extends Object | Function>(
+export function Ref$<T extends Object | Function>(
     value: T
 ): Resoult<Ref<T>, Error> {
     if (
         (typeof value === "object" || typeof value === "function") &&
         value !== null
     )
-        return Cast<T, Ref<T>>(value);
+        return <Ref<T>>(value);
     return new Error(`Cannot reference type ${typeof value}`);
 }
 
 /**
- * Creates a `stricturedClone` of the object and cast it as `Val` to explicitly state that 
+ * Creates a `stricturedClone` of the object and cast it as `Val` to explicitly state that
  * this variable is only a value and won't change anywhere else.
- * @param value 
- * @returns 
+ * @param value
+ * @returns
  */
-export function useVal<T>(value: T): Val<T> {
-    return Cast<T, Val<T>>(structuredClone(value));
+export function Val$<T>(value: T): Val<T> {
+    return <Val<T>>(structuredClone(value));
 }
 
 /**
  * Match a value to an object's keys. If no key is valid the function returns the default one (`_`).
- * @param val 
- * @param to 
- * @returns 
+ * @param val
+ * @param to
+ * @returns
  */
 export function Match<T extends string | number | symbol>(
     val: T,

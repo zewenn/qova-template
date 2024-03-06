@@ -4,17 +4,17 @@ import "github.com/evanw/esbuild/pkg/api"
 import "os"
 import (
 	"fmt"
-	"os/exec"
 	"io"
+	"os/exec"
 	"time"
 )
 
 func title(t string) {
 	print("\n\n\n\x1b[1m", t, "\x1b[0m\n")
 	for range len(t) {
-        print("~");
-    }
-    println("\n");
+		print("~")
+	}
+	println("\n")
 }
 
 func copyFile(srcPath, destPath string) error {
@@ -58,6 +58,10 @@ func build_src() {
 		Outfile:           "./build/main.js",
 		Platform:          api.PlatformNode,
 		External:          []string{"electron"},
+		JSX:               api.JSXAutomatic,
+		JSXFragment:       "Fragment",
+		JSXFactory:        "h",
+		Target:            api.ESNext,
 		Loader: map[string]api.Loader{
 			".jpg": api.LoaderFile,
 			".png": api.LoaderFile,
@@ -97,7 +101,7 @@ func build_app() {
 	}
 
 	me := copyFile("./app/html/index.html", "./build/index.html")
-	if (me != nil) {
+	if me != nil {
 		fmt.Print(fmt.Sprintf("%t", me), "\n")
 	}
 
@@ -145,21 +149,21 @@ func main() {
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-	
+
 		// Print the combined output
 		fmt.Println(string(combinedOutput))
 	}
 	if runmap["run"] {
-		
+
 		title("Electron")
-		
+
 		cmd := exec.Command("npx", "electron", "./build")
 		combinedOutput, err := cmd.CombinedOutput()
 
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-	
+
 		// Print the combined output
 		fmt.Println(string(combinedOutput))
 	}
