@@ -4,7 +4,7 @@
 export type lambda<T extends any = void> = (...args: any[]) => T;
 
 /**
- * A function which returns a `Resoult<T, Err>` value will always return, even if it encountered an error.
+ * A function which returns a `Result<T, Err>` value will always return, even if it encountered an error.
  * When the function wants to throw an error, the error will be returned.
  */
 export type Result<T, Err extends Error> = [T, null] | [null, Err];
@@ -19,7 +19,7 @@ export type Option<T> = T | undefined;
 export type Never = { __phantom__: "Never" };
 
 /**
- * A function which returns a `Trust<T>` value might not return, and it can call `PANIC` instead.
+ * A function which returns a `Volatile<T>` value might not return, and it can call `PANIC` instead.
  */
 export type Volatile<T> = T | Never;
 

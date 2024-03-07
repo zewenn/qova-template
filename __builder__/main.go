@@ -58,49 +58,6 @@ func extractFields(filename string) (string, error) {
 	return "", nil
 }
 
-// AutoImportTSFiles generates import statements for TypeScript files in the specified directory
-// func AutoImportTSFiles(directory string) (string, error) {
-// 	startTag := fmt.Sprintf("/** @field %s */", directory)
-// 	endTag := fmt.Sprintf("/** @end %s */", directory)
-
-// 	var importStatements string
-
-// 	// Get a list of all .ts files in the specified directory
-// 	tsFiles, err := filepath.Glob(filepath.Join("./source/", directory, "*.ts*"))
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	for _, tsFile := range tsFiles {
-// 		moduleName := strings.Split(filepath.Base(tsFile), ".")[0]
-// 		importStatements += fmt.Sprintf("import \"./%s/%s\";\n", directory, moduleName)
-// 	}
-
-// 	indexFilePath := filepath.Join(SOURCE_ENTRY_POINT)
-// 	indexTS, err := os.ReadFile(indexFilePath)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	c1 := string(indexTS)
-// 	content := strings.SplitAfter(c1, startTag)
-// 	if len(content) < 2 {
-// 		return "", fmt.Errorf("start tag (%s) not found", startTag)
-// 	}
-
-// 	content = strings.SplitAfter(content[1], endTag)
-// 	if len(content) < 2 {
-// 		return "", fmt.Errorf("end tag not found")
-// 	}
-// 	content_ := content[0]
-
-// 	c1 = strings.ReplaceAll(c1,
-// 		fmt.Sprintf("%s%s", startTag, content_),
-// 		fmt.Sprintf("%s\n%s%s", startTag, importStatements, endTag),
-// 	)
-
-// 	return c1, nil
-// }
 func AutoImportTSFiles(directory string) (string, error) {
 	startTag := fmt.Sprintf(`(/\*\*\s+@field\s+%s\s+\*/)`, directory)
 	endTag := fmt.Sprintf(`/\*\*\s+@close\s+%s\s+\*/`, directory)
@@ -147,28 +104,9 @@ func AutoImportTSFiles(directory string) (string, error) {
 		fmt.Sprintf("%s%s", startLine, content_),
 		fmt.Sprintf("%s\n%s%s", startLine, importStatements, endLine),
 	)
-
-	// Replace everything between start and end lines
-	// c1 = strings.ReplaceAll(c1,
-	// 	fmt.Sprintf("%s%s%s", startLine, contentBetween(startTag, endTag, c1), endLine),
-	// 	fmt.Sprintf("%s\n%s%s", startLine, importStatements, endLine),
-	// )
-
 	return c1, nil
 }
 
-// func contentBetween(startPattern, endPattern, input string) string {
-// 	startIndex := strings.Index(input, startPattern)
-// 	endIndex := strings.Index(input, endPattern)
-
-// 	if startIndex == -1 || endIndex == -1 || endIndex <= startIndex {
-// 		return ""
-// 	}
-
-// 	return input[startIndex+len(startPattern) : endIndex]
-// }
-
-// UpdateIndexFile updates the index.ts file with the generated import statements
 func UpdateIndexFile(directory, content string) error {
 	indexFilePath := filepath.Join(SOURCE_ENTRY_POINT)
 	indexTSFile, err := os.OpenFile(indexFilePath, os.O_RDWR|os.O_TRUNC, 0644)
@@ -291,7 +229,6 @@ func build_app() {
 	elapsedTime := time.Since(startTime)
 	highlight("directory", "app", elapsedTime)
 }
-
 
 func main() {
 	runmap := map[string]bool{
