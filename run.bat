@@ -1,2 +1,0 @@
-
-call toolkit\main.exe %*

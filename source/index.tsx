@@ -1,3 +1,13 @@
+/** @field scripts */
+import "./scripts/asd";
+import "./scripts/test";
+/** @close scripts */
+
+/** @field test */
+import "./test/a";
+/** @close test */
+
+
 import { Match, Result, printf } from "../std/std";
 import { $, Main, Render } from "../std/std.dom";
 
