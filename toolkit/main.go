@@ -50,7 +50,7 @@ func copyFile(srcPath, destPath string) error {
 func build_src() {
 	startTime := time.Now()
 	result := api.Build(api.BuildOptions{
-		EntryPoints:       []string{"./source/index.ts"},
+		EntryPoints:       []string{"./source/index.tsx"},
 		Bundle:            true,
 		MinifySyntax:      true,
 		MinifyWhitespace:  true,

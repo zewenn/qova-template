@@ -7,17 +7,21 @@ export type lambda<T extends any = void> = (...args: any[]) => T;
  * A function which returns a `Resoult<T, Err>` value will always return, even if it encountered an error.
  * When the function wants to throw an error, the error will be returned.
  */
-export type Resoult<T, Err extends Error> = T | Err;
+export type Result<T, Err extends Error> = [T, null] | [null, Err];
 /**
  * A function which returns a `Option<T>` might return `undefined`.
  */
 export type Option<T> = T | undefined;
 
+/**
+ * Never is a phantom which helps defining types
+ */
+export type Never = { __phantom__: "Never" };
 
 /**
  * A function which returns a `Trust<T>` value might not return, and it can call `PANIC` instead.
  */
-export type Trust<T> = T | never;
+export type Volatile<T> = T | Never;
 
 /**
  * A value marked as `Ref` is also used somewhere else in the codebase. If changed, it will change everywhere.
@@ -63,8 +67,16 @@ export const printf = (...message: any[]) => {
  * Stop the program from executing by throwing an error.
  * @param msg
  */
-export function PANIC(msg: string): never {
-    throw new Error(msg);
+export function PANIC<T extends Error>(msg: T): Never {
+    throw msg;
+}
+
+export function Cast<F, T extends F>(x: F) {
+    return x as T;
+}
+
+export function ForceCast<T>(x: any) {
+    return x as unknown as T;
 }
 
 /**
@@ -79,7 +91,7 @@ export function ConvertCast<F, T extends F>(
     obj: F,
     missing?: MissingKeys<T, F>
 ) {
-    const res: T = <T>(obj);
+    const res: T = <T>obj;
     if (missing) {
         for (const key in missing) {
             res[key] = missing[key];
@@ -95,13 +107,13 @@ export function ConvertCast<F, T extends F>(
  */
 export function Ref$<T extends Object | Function>(
     value: T
-): Resoult<Ref<T>, Error> {
+): Result<Ref<T>, Error> {
     if (
         (typeof value === "object" || typeof value === "function") &&
         value !== null
     )
-        return <Ref<T>>(value);
-    return new Error(`Cannot reference type ${typeof value}`);
+        return [<Ref<T>>value, null];
+    return [null, new Error(`Cannot reference type ${typeof value}`)];
 }
 
 /**
@@ -111,7 +123,7 @@ export function Ref$<T extends Object | Function>(
  * @returns
  */
 export function Val$<T>(value: T): Val<T> {
-    return <Val<T>>(structuredClone(value));
+    return <Val<T>>structuredClone(value);
 }
 
 /**
