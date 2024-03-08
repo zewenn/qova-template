@@ -29,10 +29,12 @@ func main() {
 	SOURCE_ENTRY_POINT = entries[0]
 
 	runmap := map[string]bool{
-		"src":     false,
-		"app":     false,
-		"run":     false,
-		"include": false,
+		"src":          false,
+		"app":          false,
+		"run:electron": false,
+		"run:node":     false,
+		"run:bun":      false,
+		"include":      false,
 	}
 
 	for _, arg := range os.Args[1:] {
@@ -42,8 +44,14 @@ func main() {
 		if arg == "-b:app" {
 			runmap["app"] = true
 		}
-		if arg == "-r" {
-			runmap["run"] = true
+		if arg == "-r:el" || arg == "-r:electron" {
+			runmap["run:electron"] = true
+		}
+		if arg == "-r:n" || arg == "-r:node" {
+			runmap["run:node"] = true
+		}
+		if arg == "-r:b" || arg == "-r:bun" {
+			runmap["run:bun"] = true
 		}
 		if arg == "-i" {
 			runmap["include"] = true
@@ -77,19 +85,54 @@ func main() {
 	if runmap["app"] {
 		build_app()
 	}
-	if runmap["run"] {
+	if runmap["run:electron"] || runmap["run:node"] || runmap["run:bun"] {
+		title("Running")
 
-		title("Electron")
-
+	}
+	if runmap["run:electron"] {
+		startTime := time.Now()
 		cmd := exec.Command("npx", "electron", "./build")
 		combinedOutput, err := cmd.CombinedOutput()
-
+	
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-
+		
 		// Print the combined output
+		elapsedTime := time.Since(startTime)
+		highlight("runtime", "electron", elapsedTime)	
+		print("\n\n")
 		fmt.Println(string(combinedOutput))
+	}
+	if runmap["run:node"] {
+		startTime := time.Now()
+		cmd := exec.Command("node", "./build/main.js")
+		combinedOutput, err := cmd.CombinedOutput()
+	
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		
+		// Print the combined output
+		elapsedTime := time.Since(startTime)
+		highlight("runtime", "node", elapsedTime)	
+		print("\n\n")
+		fmt.Println(string(combinedOutput))
+	}
+	if runmap["run:bun"] {
+		startTime := time.Now()
+		cmd := exec.Command("bun", "./build/main.js")
+		combinedOutput, err := cmd.CombinedOutput()
+	
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		
+		// Print the combined output
+		elapsedTime := time.Since(startTime)
+		highlight("runtime", "node", elapsedTime)	
+		print("\n\n")
+		fmt.Println(string(combinedOutput))	
 	}
 }
 
@@ -276,7 +319,7 @@ func build_src() {
 		MinifySyntax:      true,
 		MinifyWhitespace:  true,
 		MinifyIdentifiers: false,
-		Outfile:            "./build/main.js",
+		Outfile:           "./build/main.js",
 		Platform:          api.PlatformNode,
 		External:          []string{"electron"},
 		JSX:               api.JSXAutomatic,

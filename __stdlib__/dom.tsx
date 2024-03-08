@@ -1,5 +1,5 @@
 import React from "react";
-import { Result, lambda, printf } from "./std"
+import { Result, lambda, printf } from "."
 import { createRoot, Root } from "react-dom/client";
 
 
