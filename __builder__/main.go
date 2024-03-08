@@ -2,20 +2,118 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
 
 	"github.com/evanw/esbuild/pkg/api"
 )
 
-var SOURCE_ENTRY_POINT = "./source/index.tsx"
+var SOURCE_ENTRY_POINT string = ""
 var SCRIPT_DIRECTORIES = []string{}
+
+func main() {
+
+	entries, err := get_entries("main")
+	if err != nil {
+		println("[FAIL] Program failed trying to find the entry point!")
+		println("Error:", err.Error())
+		return
+	}
+	SOURCE_ENTRY_POINT = entries[0]
+
+	runmap := map[string]bool{
+		"src":     false,
+		"app":     false,
+		"run":     false,
+		"include": false,
+	}
+
+	for _, arg := range os.Args[1:] {
+		if arg == "-b:src" {
+			runmap["src"] = true
+		}
+		if arg == "-b:app" {
+			runmap["app"] = true
+		}
+		if arg == "-r" {
+			runmap["run"] = true
+		}
+		if arg == "-i" {
+			runmap["include"] = true
+		}
+	}
+
+	if runmap["include"] {
+		title("Generating Imports")
+
+		filename := SOURCE_ENTRY_POINT
+		_, err := extractFields(filename)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+
+		for _, dirname := range SCRIPT_DIRECTORIES {
+			startTime := time.Now()
+			autogen(dirname)
+			elapsedTime := time.Since(startTime)
+			highlight("field", dirname, elapsedTime)
+		}
+	}
+	if runmap["src"] || runmap["app"] {
+		title("Building")
+	}
+
+	if runmap["src"] {
+		build_src()
+	}
+	if runmap["app"] {
+		build_app()
+	}
+	if runmap["run"] {
+
+		title("Electron")
+
+		cmd := exec.Command("npx", "electron", "./build")
+		combinedOutput, err := cmd.CombinedOutput()
+
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+
+		// Print the combined output
+		fmt.Println(string(combinedOutput))
+	}
+}
+
+func get_entries(pattern string) ([]string, error) {
+	dir := "./source"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use filepath.Glob to match files based on the pattern
+	var matchedFiles []string
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fmt.Sprintf("[%s] ", pattern)) && (strings.HasSuffix(file.Name(), ".ts") || strings.HasSuffix(file.Name(), ".tsx")) {
+			matchedFiles = append(matchedFiles, filepath.Join(dir, file.Name()))
+		}
+	}
+
+	if len(matchedFiles) == 0 {
+		return nil, errors.New("no pattern matched")
+	}
+
+	return matchedFiles, nil
+}
 
 func title(t string) {
 	print("\n\n\n\x1b[1m", t, "\x1b[0m\n")
@@ -79,9 +177,9 @@ func AutoImportTSFiles(directory string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	c1 := string(indexTS)
-	
+
 	startLineRegex := regexp.MustCompile(fmt.Sprintf(`%s.*`, startTag))
 	endLineRegex := regexp.MustCompile(fmt.Sprintf(`%s.*`, endTag))
 
@@ -98,7 +196,6 @@ func AutoImportTSFiles(directory string) (string, error) {
 		return "", fmt.Errorf("end tag not found")
 	}
 	content_ := content[0]
-
 
 	c1 = strings.ReplaceAll(c1,
 		fmt.Sprintf("%s%s", startLine, content_),
@@ -175,7 +272,7 @@ func build_src() {
 		MinifySyntax:      true,
 		MinifyWhitespace:  true,
 		MinifyIdentifiers: false,
-		Outfile:           "./build/main.js",
+		Outfile:            "./build/main.js",
 		Platform:          api.PlatformNode,
 		External:          []string{"electron"},
 		JSX:               api.JSXAutomatic,
@@ -220,78 +317,12 @@ func build_app() {
 		fmt.Println(result.Errors[0].Text)
 		os.Exit(1)
 	}
-	
+
 	me := copyFile("./app/html/index.html", "./build/index.html")
 	if me != nil {
 		fmt.Print(fmt.Sprintf("%t", me), "\n")
 	}
-	
+
 	elapsedTime := time.Since(startTime)
 	highlight("directory", "app", elapsedTime)
-}
-
-func main() {
-	runmap := map[string]bool{
-		"src":     false,
-		"app":     false,
-		"run":     false,
-		"include": false,
-	}
-
-	for _, arg := range os.Args[1:] {
-		if arg == "-b:src" {
-			runmap["src"] = true
-		}
-		if arg == "-b:app" {
-			runmap["app"] = true
-		}
-		if arg == "-r" {
-			runmap["run"] = true
-		}
-		if arg == "-i" {
-			runmap["include"] = true
-		}
-	}
-	
-	if runmap["include"] {
-		title("Generating Imports")
-		
-		filename := SOURCE_ENTRY_POINT // Replace with the actual filename
-		_, err := extractFields(filename)
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-
-		for _, dirname := range SCRIPT_DIRECTORIES {
-			startTime := time.Now()
-			autogen(dirname)
-			elapsedTime := time.Since(startTime)
-			highlight("field", dirname, elapsedTime)
-		}
-	}
-	if runmap["src"] || runmap["app"] {
-		title("Building")
-	}
-
-	if runmap["src"] {
-		build_src()
-	}
-	if runmap["app"] {
-		build_app()
-	}
-	if runmap["run"] {
-
-		title("Electron")
-
-		cmd := exec.Command("npx", "electron", "./build")
-		combinedOutput, err := cmd.CombinedOutput()
-
-		if err != nil {
-			fmt.Println("Error:", err)
-		}
-
-		// Print the combined output
-		fmt.Println(string(combinedOutput))
-	}
 }
