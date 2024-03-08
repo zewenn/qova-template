@@ -4,5 +4,5 @@ import { printf } from "../__stdlib__";
 import "./example/test";
 /** @close ./example */
 
-printf("Hello world!")
+printf("!w", "Hello world!");
 

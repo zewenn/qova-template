@@ -41,6 +41,27 @@ export type Matcher<T extends string | number | symbol> = {
 
 type MissingKeys<T extends K, K> = Pick<T, Exclude<keyof T, keyof K>>;
 
+export let IS_BROWSER_PROCESS: boolean | undefined = undefined;
+/**
+ * 
+ * @returns 
+ */
+export function is_browser(): boolean {
+    if (IS_BROWSER_PROCESS !== undefined) return IS_BROWSER_PROCESS;
+    try {
+        if (document && window) {
+            IS_BROWSER_PROCESS = true;
+            return true
+        };
+    }
+    catch {
+        IS_BROWSER_PROCESS = false;
+        return false;
+    }
+    IS_BROWSER_PROCESS = false;
+    return false;
+}
+
 /**
  * # printf
  * Bassic binding to `console.log` for easier use. If used without special params, just calls `console.log`.
@@ -50,13 +71,17 @@ type MissingKeys<T extends K, K> = Pick<T, Exclude<keyof T, keyof K>>;
  * If the `"!e"` flag is used `console.error` will be called.
  */
 export const printf = (...message: any[]) => {
+    const colouring = !is_browser();
+
     if (message.includes("!w")) {
         message.splice(message.indexOf("!w"), 1);
+        if (colouring) message = ["[Warn]\x1b[33m", ...message, "\x1b[0m"];
         console.warn(...message);
         return;
     }
     if (message.includes("!e")) {
         message.splice(message.indexOf("!e"), 1);
+        if (colouring) message = ["[Error]\x1b[35m", ...message, "\x1b[0m"];
         console.error(...message);
         return;
     }
