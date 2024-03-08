@@ -137,7 +137,7 @@ func extractFields(filename string) (string, error) {
 	scanner := bufio.NewScanner(file)
 
 	// Regular expression to match "@field" and the following word
-	fieldRegex := regexp.MustCompile(`@field\s+(\w+)`)
+	fieldRegex := regexp.MustCompile(`@field\s+(.+)\s+`)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -169,6 +169,10 @@ func AutoImportTSFiles(directory string) (string, error) {
 
 	for _, tsFile := range tsFiles {
 		moduleName := strings.Split(filepath.Base(tsFile), ".")[0]
+		if strings.HasPrefix(directory, "./") {
+			importStatements += fmt.Sprintf("import \"%s/%s\";\n", directory, moduleName)
+			continue
+		}
 		importStatements += fmt.Sprintf("import \"./%s/%s\";\n", directory, moduleName)
 	}
 

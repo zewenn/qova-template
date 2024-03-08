@@ -1,7 +1,7 @@
 import { printf } from "../__default__/std";
 
-/** @field example */
+/** @field ./example */
 import "./example/test";
-/** @close example */
+/** @close ./example */
 
 printf("Hello world!")
