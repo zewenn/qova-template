@@ -63,3 +63,86 @@ export function Render(tsx: React.ReactNode, to?: HTMLElement): Option<Error> {
     rootMap.get(to)!.render(<React.StrictMode>{tsx}</React.StrictMode>);
 }
 
+/**
+ * $Component helps managing the element's after render
+ */
+export namespace $c {
+    interface BoundingBox {
+        x: number;
+        y: number;
+        top: number;
+        left: number;
+        width: number;
+        height: number;
+    }
+
+    function process_cls(cls: string): string[] {
+        const arr = cls.split(" ");
+        const res: string[] = [];
+        for (let x of arr) {
+            if (x !== "") {
+                res.push(x);
+            }
+        }
+        return res;
+    }
+
+    export function is<T extends HTMLElement>(element: T, cls: string): boolean {
+        const className = process_cls(cls);
+        for (let c in className) {
+            if (!element.classList.contains(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    export function make<T extends HTMLElement>(element: T, cls: string): void {
+        const className = process_cls(cls);
+        for (let c in className) {
+            if (!element.classList.contains(c)) {
+                element.classList.add(c);
+            }
+        }
+    }
+
+    export function unmake<T extends HTMLElement>(element: T, cls: string): void {
+        const className = process_cls(cls);
+        for (let c in className) {
+            if (element.classList.contains(c)) {
+                element.classList.remove(c);
+            }
+        }
+    }
+
+    export function css<T extends HTMLElement>(element: T, property: string, value: any): void {
+        element.style.setProperty(property, `${value}`);
+    }
+
+    export function css_get<T extends HTMLElement>(element: T, property: string): Result<string, Error> {
+        const value = element.computedStyleMap().get(property);
+        /* istanbul ignore next */
+        if (!value) return [null, new Error("Property not found!")];
+        /* istanbul ignore next */
+        return [value.toString(), null];
+    }
+
+    export function scale<T extends HTMLElement>(element: T): number {
+        const [scale, err] = css_get(element, "scale");
+        if (err) {
+            return 1;
+        }
+        return parseFloat(scale!);
+    }
+
+    export function bounds<T extends HTMLElement>(element: T): BoundingBox {
+        return {
+            x: element.offsetLeft,
+            y: element.offsetTop,
+            left: element.offsetLeft,
+            top: element.offsetTop,
+            width: element.offsetWidth,
+            height: element.offsetHeight,
+        };
+    }
+}
