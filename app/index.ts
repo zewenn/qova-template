@@ -1,4 +1,4 @@
-import ElectronWindow from "./ts-electron/bazalt";
+import ElectronWindow from "../__stdlib__/electron";
 
 const Window = new ElectronWindow("../assets/icon.ico", "windowed", {
     width: 1600,

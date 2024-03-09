@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,10 +28,10 @@ func main() {
 	SOURCE_ENTRY_POINT = entries[0]
 
 	runmap := map[string]bool{
-		"src":          false,
-		"app":          false,
-		"run": false,
-		"include":      false,
+		"src":     false,
+		"app":     false,
+		"run":     false,
+		"include": false,
 	}
 	target := "electron"
 
@@ -44,13 +43,13 @@ func main() {
 			runmap["app"] = true
 		}
 		if arg == "-t:el" || arg == "-t:electron" {
-			target = "electron";
+			target = "electron"
 		}
 		if arg == "-t:n" || arg == "-t:node" {
-			target = "node";
+			target = "node"
 		}
 		if arg == "-t:b" || arg == "-t:bun" {
-			target = "bun";
+			target = "bun"
 		}
 		if arg == "-r" || arg == "-run" {
 			runmap["run"] = true
@@ -87,7 +86,7 @@ func main() {
 	if runmap["app"] {
 		build_app()
 	}
-	
+
 	if !runmap["run"] {
 		return
 	}
@@ -98,14 +97,14 @@ func main() {
 		startTime := time.Now()
 		cmd := exec.Command("npx", "electron", "./build")
 		combinedOutput, err := cmd.CombinedOutput()
-	
+
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		
+
 		// Print the combined output
 		elapsedTime := time.Since(startTime)
-		highlight("runtime", "electron", elapsedTime)	
+		highlight("runtime", "electron", elapsedTime)
 		print("\n\n")
 		fmt.Println(string(combinedOutput))
 	}
@@ -113,14 +112,14 @@ func main() {
 		startTime := time.Now()
 		cmd := exec.Command("node", "./build/main.js")
 		combinedOutput, err := cmd.CombinedOutput()
-	
+
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		
+
 		// Print the combined output
 		elapsedTime := time.Since(startTime)
-		highlight("runtime", "node", elapsedTime)	
+		highlight("runtime", "node", elapsedTime)
 		print("\n\n")
 		fmt.Println(string(combinedOutput))
 	}
@@ -128,17 +127,38 @@ func main() {
 		startTime := time.Now()
 		cmd := exec.Command("bun", "./build/main.js")
 		combinedOutput, err := cmd.CombinedOutput()
-	
+
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		
+
 		// Print the combined output
 		elapsedTime := time.Since(startTime)
-		highlight("runtime", "node", elapsedTime)	
+		highlight("runtime", "node", elapsedTime)
 		print("\n\n")
-		fmt.Println(string(combinedOutput))	
+		fmt.Println(string(combinedOutput))
 	}
+}
+
+func createFile(filename, contents string) error {
+	startTime := time.Now()
+	// Create a new file
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Write contents to the file
+	_, err = file.WriteString(contents)
+	if err != nil {
+		return err
+	}
+
+	elapsedTime := time.Since(startTime)
+	highlight("file", "index.html", elapsedTime)
+
+	return nil
 }
 
 func get_entries(pattern string) ([]string, error) {
@@ -286,35 +306,35 @@ func autogen(directory string) {
 	}
 }
 
-func copyFile(srcPath, destPath string) error {
-	// Open the source file
-	srcFile, err := os.Open(srcPath)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
+// func copyFile(srcPath, destPath string) error {
+// 	// Open the source file
+// 	srcFile, err := os.Open(srcPath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer srcFile.Close()
 
-	// Create or truncate the destination file
-	destFile, err := os.Create(destPath)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
+// 	// Create or truncate the destination file
+// 	destFile, err := os.Create(destPath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer destFile.Close()
 
-	// Copy the content from source to destination
-	_, err = io.Copy(destFile, srcFile)
-	if err != nil {
-		return err
-	}
+// 	// Copy the content from source to destination
+// 	_, err = io.Copy(destFile, srcFile)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Sync to ensure the content is written to disk
-	err = destFile.Sync()
-	if err != nil {
-		return err
-	}
+// 	// Sync to ensure the content is written to disk
+// 	err = destFile.Sync()
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func build_src() {
 	startTime := time.Now()
@@ -350,6 +370,23 @@ func build_src() {
 
 func build_app() {
 	startTime := time.Now()
+
+	createFile(
+		"./build/index.html",
+		`<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Project</title>
+	<link rel="stylesheet" href="main.css">
+	<script defer src="main.js"></script>
+</head>
+<body>
+</body>
+</html>`)
+
 	result := api.Build(api.BuildOptions{
 		EntryPoints:       []string{"./app/index.ts"},
 		Bundle:            true,
@@ -370,10 +407,10 @@ func build_app() {
 		os.Exit(1)
 	}
 
-	me := copyFile("./app/html/index.html", "./build/index.html")
-	if me != nil {
-		fmt.Print(fmt.Sprintf("%t", me), "\n")
-	}
+	// me := copyFile("./app/html/index.html", "./build/index.html")
+	// if me != nil {
+	// 	fmt.Print(fmt.Sprintf("%t", me), "\n")
+	// }
 
 	elapsedTime := time.Since(startTime)
 	highlight("directory", "app", elapsedTime)

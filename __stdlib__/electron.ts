@@ -79,7 +79,6 @@ export default class ElectronWindow {
 
         app.whenReady().then(() => {
             new_bw();
-            this.browser_window!.webContents.openDevTools();
         });
         
         app.on('window-all-closed', () => {
