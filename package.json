@@ -9,6 +9,8 @@
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "go-build": "cd ./__builder__ && go build -o ../run.exe ./main.go"
+    "go-build": "cd ./__builder__ && go build -o ../run.exe ./main.go",
+    "go-dev": "code ./__builder__/",
+    "std-dev": "code ./__stdlib__/"
   }
 }
