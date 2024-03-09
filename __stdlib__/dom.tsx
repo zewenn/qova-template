@@ -1,6 +1,7 @@
 import React from "react";
 import { Option, Result, lambda, printf } from "."
 import { createRoot, Root } from "react-dom/client";
+import { act } from 'react-dom/test-utils';
 import { IS_BROWSER_PROCESS, is_browser } from ".";
 
 
@@ -52,15 +53,19 @@ const rootMap: Map<HTMLElement, Root> = new Map<HTMLElement, Root>([]);
 export function Render(tsx: React.ReactNode, to?: HTMLElement): Option<Error> {
     const [rt, err] = GetRoot();
 
-    if (err instanceof Error) {
+    if (err) {
         return err;
     }
 
-    if (!to) to = rt!;
+    if (!to) to = rt;
 
     if (!rootMap.get(to)) rootMap.set(to, createRoot(to));
 
-    rootMap.get(to)!.render(<React.StrictMode>{tsx}</React.StrictMode>);
+    const root = rootMap.get(to)!;
+
+    act(() => {
+        root.render(<React.StrictMode>{tsx}</React.StrictMode>);
+    });
 }
 
 /**
@@ -77,14 +82,7 @@ export namespace $c {
     }
 
     function process_cls(cls: string): string[] {
-        const arr = cls.split(" ");
-        const res: string[] = [];
-        for (let x of arr) {
-            if (x !== "") {
-                res.push(x);
-            }
-        }
-        return res;
+        return cls.split(" ");
     }
 
     export function is<T extends HTMLElement>(element: T, cls: string): boolean {

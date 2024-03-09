@@ -31,11 +31,10 @@ func main() {
 	runmap := map[string]bool{
 		"src":          false,
 		"app":          false,
-		"run:electron": false,
-		"run:node":     false,
-		"run:bun":      false,
+		"run": false,
 		"include":      false,
 	}
+	target := "electron"
 
 	for _, arg := range os.Args[1:] {
 		if arg == "-b:src" {
@@ -44,14 +43,17 @@ func main() {
 		if arg == "-b:app" {
 			runmap["app"] = true
 		}
-		if arg == "-r:el" || arg == "-r:electron" {
-			runmap["run:electron"] = true
+		if arg == "-t:el" || arg == "-t:electron" {
+			target = "electron";
 		}
-		if arg == "-r:n" || arg == "-r:node" {
-			runmap["run:node"] = true
+		if arg == "-t:n" || arg == "-t:node" {
+			target = "node";
 		}
-		if arg == "-r:b" || arg == "-r:bun" {
-			runmap["run:bun"] = true
+		if arg == "-t:b" || arg == "-t:bun" {
+			target = "bun";
+		}
+		if arg == "-r" || arg == "-run" {
+			runmap["run"] = true
 		}
 		if arg == "-i" {
 			runmap["include"] = true
@@ -85,11 +87,14 @@ func main() {
 	if runmap["app"] {
 		build_app()
 	}
-	if runmap["run:electron"] || runmap["run:node"] || runmap["run:bun"] {
-		title("Running")
-
+	
+	if !runmap["run"] {
+		return
 	}
-	if runmap["run:electron"] {
+
+	title("Running")
+
+	if target == "electron" {
 		startTime := time.Now()
 		cmd := exec.Command("npx", "electron", "./build")
 		combinedOutput, err := cmd.CombinedOutput()
@@ -104,7 +109,7 @@ func main() {
 		print("\n\n")
 		fmt.Println(string(combinedOutput))
 	}
-	if runmap["run:node"] {
+	if target == "node" {
 		startTime := time.Now()
 		cmd := exec.Command("node", "./build/main.js")
 		combinedOutput, err := cmd.CombinedOutput()
@@ -119,7 +124,7 @@ func main() {
 		print("\n\n")
 		fmt.Println(string(combinedOutput))
 	}
-	if runmap["run:bun"] {
+	if target == "bun" {
 		startTime := time.Now()
 		cmd := exec.Command("bun", "./build/main.js")
 		combinedOutput, err := cmd.CombinedOutput()
