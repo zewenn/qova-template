@@ -1,7 +1,6 @@
 import React from "react";
 import { Option, Result, lambda, printf } from "."
 import { createRoot, Root } from "react-dom/client";
-import { act } from 'react-dom/test-utils';
 import { IS_BROWSER_PROCESS, is_browser } from ".";
 
 
@@ -67,7 +66,7 @@ export function Render(tsx: React.ReactNode, to?: HTMLElement): Option<Error> {
     const rootArr = toArrMap.get(root)!;
 
     rootArr.push(tsx);
-    
+
     root.render(<React.StrictMode>{...rootArr}</React.StrictMode>);
 }
 
