@@ -166,3 +166,16 @@ export function Match<T extends string | number | symbol>(
     }
     return to[val];
 }
+
+export function Silence(cb: lambda) {
+    const log = console.log;
+    const wrn = console.warn;
+    const err = console.error;
+    console.log = () => {};
+    console.warn = () => {};
+    console.error = () => {};
+    cb();
+    console.log = log;
+    console.warn = wrn;
+    console.error = err;
+}

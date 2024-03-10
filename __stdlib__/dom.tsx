@@ -1,7 +1,8 @@
 import React from "react";
-import { Option, Result, lambda, printf } from "."
+import { Option, Result, lambda, printf, Silence } from "."
 import { createRoot, Root } from "react-dom/client";
 import { IS_BROWSER_PROCESS, is_browser } from ".";
+import { act } from "react-dom/test-utils";
 
 
 
@@ -64,10 +65,9 @@ export function Render(tsx: React.ReactNode, to?: HTMLElement): Option<Error> {
 
     if (!toArrMap.get(root)) toArrMap.set(root, []);
     const rootArr = toArrMap.get(root)!;
-
     rootArr.push(tsx);
 
-    root.render(<React.StrictMode>{...rootArr}</React.StrictMode>);
+    Silence(() => act(() => root.render(<React.StrictMode>{...rootArr}</React.StrictMode>)))
 }
 
 /**
