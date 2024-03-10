@@ -5,7 +5,6 @@ const Window = new ElectronWindow("../assets/icon.ico", "windowed", {
     height: 900,
 });
 
-Window.browser_window?.webContents.setFrameRate(120);
 
 Window.bind({
     "exit" : () => {
@@ -28,4 +27,5 @@ Window.bind({
         console.log(`${obj} - ${file} - ${mode}`);
     }
 })
+
 Window.init()

@@ -49,6 +49,7 @@ export function GetRoot(): Result<HTMLElement, Error> {
 }
 
 const rootMap: Map<HTMLElement, Root> = new Map<HTMLElement, Root>([]);
+const toArrMap: Map<Root, React.ReactNode[]> = new Map<Root, React.ReactNode[]>([]);
 
 export function Render(tsx: React.ReactNode, to?: HTMLElement): Option<Error> {
     const [rt, err] = GetRoot();
@@ -58,14 +59,16 @@ export function Render(tsx: React.ReactNode, to?: HTMLElement): Option<Error> {
     }
 
     if (!to) to = rt;
-
     if (!rootMap.get(to)) rootMap.set(to, createRoot(to));
-
+    
     const root = rootMap.get(to)!;
 
-    act(() => {
-        root.render(<React.StrictMode>{tsx}</React.StrictMode>);
-    });
+    if (!toArrMap.get(root)) toArrMap.set(root, []);
+    const rootArr = toArrMap.get(root)!;
+
+    rootArr.push(tsx);
+    
+    root.render(<React.StrictMode>{...rootArr}</React.StrictMode>);
 }
 
 /**
