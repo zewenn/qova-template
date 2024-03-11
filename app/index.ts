@@ -18,13 +18,6 @@ Window.bind({
             return;
         }
         Window.browser_window.webContents.openDevTools();
-    },
-    "close-window": () => {
-        Window.browser_window?.close();
-    },
-    "save-file": (event, obj, file, mode) => {
-        obj = JSON.parse(obj);
-        console.log(`${obj} - ${file} - ${mode}`);
     }
 })
 
