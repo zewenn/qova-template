@@ -1,7 +1,7 @@
 /**
  * Basic definition of an arrow function or lambda
  */
-export type lambda<T extends any = void> = (...args: any[]) => T;
+export type lambda<T extends any[] = any[], R = any> = (...args: T) => R;
 
 /**
  * A function which returns a `Result<T, Err>` value will always return, even if it encountered an error.
@@ -26,7 +26,7 @@ export type Volatile<T> = T | Never;
 /**
  * A value marked as `Ref` is also used somewhere else in the codebase. If changed, it will change everywhere.
  */
-export type Ref<T extends Object> = T & { __phantom__: "Reference" };
+export type Ref<T extends object> = T & { __phantom__: "Reference" };
 
 /**
  * A value marked as `Val` is a duplicate of another value; use this as you wish since it won't break anything.
@@ -42,19 +42,23 @@ export type Matcher<T extends string | number | symbol> = {
 type MissingKeys<T extends K, K> = Pick<T, Exclude<keyof T, keyof K>>;
 
 export let IS_BROWSER_PROCESS: boolean | undefined = undefined;
+const Func_Cache: Map<lambda, Map<string, any>> = new Map<
+    lambda,
+    Map<string, any>
+>([]);
+
 /**
- * 
- * @returns 
+ *
+ * @returns
  */
 export function is_browser(): boolean {
     if (IS_BROWSER_PROCESS !== undefined) return IS_BROWSER_PROCESS;
     try {
         if (document && window) {
             IS_BROWSER_PROCESS = true;
-            return true
-        };
-    }
-    catch {
+            return true;
+        }
+    } catch {
         IS_BROWSER_PROCESS = false;
         return false;
     }
@@ -96,7 +100,7 @@ export function PANIC<T extends Error>(msg: T): Never {
     throw msg;
 }
 
-export function Cast<F, T extends F>(x: F) {
+export function Cast<T>(x: Partial<T>) {
     return x as T;
 }
 
@@ -167,6 +171,10 @@ export function Match<T extends string | number | symbol>(
     return to[val];
 }
 
+/**
+ * Silences the common outputs (log, warn, error) of a function
+ * @param cb
+ */
 export function Silence(cb: lambda) {
     const log = console.log;
     const wrn = console.warn;
@@ -178,4 +186,24 @@ export function Silence(cb: lambda) {
     console.log = log;
     console.warn = wrn;
     console.error = err;
+}
+
+/**
+ * Create a chached lambda for faster runtime
+ * @version alpha
+ * @param cb
+ * @returns
+ */
+export function Cache<T extends any[], R>(cb: lambda<T, R>): lambda<T, Val<R>> {
+    if (!Func_Cache.get(cb)) Func_Cache.set(cb, new Map<string, any>([]));
+
+    return (...args: T): Val<R> => {
+        const argstr = args.join("-");
+
+        if (Func_Cache.get(cb)!.get(argstr)) return Val$(Func_Cache.get(cb)!.get(argstr));
+
+        const res = cb(...args);
+        Func_Cache.get(cb)!.set(argstr, res);
+        return Val$(res);
+    };
 }
