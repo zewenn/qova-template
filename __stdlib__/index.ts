@@ -8,6 +8,7 @@ export type lambda<T extends any[] = any[], R = any> = (...args: T) => R;
  * When the function wants to throw an error, the error will be returned.
  */
 export type Result<T, Err extends Error> = [T, null] | [null, Err];
+
 /**
  * A function which returns a `Option<T>` might return `undefined`.
  */
@@ -100,10 +101,16 @@ export function PANIC<T extends Error>(msg: T): Never {
     throw msg;
 }
 
+/**
+ * Cast a value as `T` but only if the value's type is a subset of the generic `T` type.
+ */
 export function Cast<T>(x: Partial<T>) {
     return x as T;
 }
 
+/**
+ * Ignore any type concerns and cast x as `T` no matter what.
+ */
 export function ForceCast<T>(x: any) {
     return x as unknown as T;
 }
