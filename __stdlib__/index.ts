@@ -153,7 +153,7 @@ export function Ref$<T extends Object | Function>(
 }
 
 /**
- * Creates a `stricturedClone` of the object and cast it as `Val` to explicitly state that
+ * Creates a `structuredClone` of the object and cast it as `Val` to explicitly state that
  * this variable is only a value and won't change anywhere else.
  * @param value
  * @returns
