@@ -1,19 +1,22 @@
 import { app, BrowserWindow, Menu, ipcMain, IpcMainEvent } from "electron";
+import { lambda, printf } from ".";
 
 interface Resolution {
     width: number;
     height: number;
 }
 
+export type IpcMainEventFn = (event?: IpcMainEvent, ...args: any[]) => void;
+
 interface EventBinds {
-    [key: string]: (event?: IpcMainEvent, ...args: any[]) => void;
+    [key: string]: IpcMainEventFn;
 }
 
 type WindowMode = "windowed" | "windowed-fullscreen" | "fullscreen";
 
 export default class ElectronWindow {
     public resolution: Resolution;
-    public ipcEvents: EventBinds;
+    public ipcEvents: Map<string, IpcMainEventFn>;
     public bw_options: Electron.BrowserViewConstructorOptions;
     public mode: WindowMode;
     public icon_path: string;
@@ -33,17 +36,22 @@ export default class ElectronWindow {
             };
         }
         this.resolution = resolution;
-        this.ipcEvents = {};
+        this.ipcEvents = new Map<string, IpcMainEventFn>;
         this.bw_options = {};
     }
 
-    public bind(events: EventBinds) {
-        for (const key in events) {
-            this.ipcEvents[key] = events[key];
+    public Bind(events: Map<string, IpcMainEventFn>) {
+        for (const [key, value] of events) {
+            this.ipcEvents[key] = value;
+            if (key.startsWith("once:")) {
+                ipcMain.once(key, value);
+                continue;
+            }
+            ipcMain.on(key, value);
         }
     }
 
-    public bind_constructor_options(
+    public BindConstructorOptions(
         options: Electron.BrowserViewConstructorOptions
     ) {
         for (const key in options) {
@@ -51,7 +59,7 @@ export default class ElectronWindow {
         }
     }
 
-    public init() {
+    public Init() {
         const new_bw = () => {
             const options: Electron.BrowserWindowConstructorOptions = {
                 width: this.resolution.width,
@@ -85,13 +93,5 @@ export default class ElectronWindow {
             app.quit();
             console.log("\r\n");
         })
-
-        for (let key in this.ipcEvents) {
-            if (key.startsWith("once:")) {
-                ipcMain.once(key, this.ipcEvents[key]);
-                continue;
-            }
-            ipcMain.on(key, this.ipcEvents[key])
-        }
     }
 }

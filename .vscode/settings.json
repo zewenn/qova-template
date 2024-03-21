@@ -6,7 +6,7 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        "**/__builder__": true,
-        "**/__stdlib__": true,
+        // "**/__builder__": true,
+        // "**/__stdlib__": true,
     }
 }
