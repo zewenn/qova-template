@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Option, Result, lambda, printf, Silence } from ".";
+import { Option, Result, lambda, printf, Silence, ForceCast } from ".";
 import { createRoot, Root } from "react-dom/client";
 import { IS_BROWSER_PROCESS, is_browser } from ".";
 import { act } from "react-dom/test-utils";
@@ -15,12 +15,37 @@ export function Main(cb: lambda) {
 
 export function $<T extends HTMLElement>(selector: string): Result<T, Error> {
     if (!is_browser()) return [null, new Error("Not browser environment!")];
-
+    
     const r = document.querySelector<T>(selector);
     if (!r) {
         return [null, new Error("Element missing!")];
     }
     return [r, null];
+}
+
+const HookMap = new Map<string, HTMLElement>([]);
+export function $hook(selector: string): Result<() => HTMLElement | null, Error> {
+    if (!is_browser()) return [null, new Error("Not browser environment!")];
+    const [Root, Root_Err] = GetRoot();
+
+    if (Root_Err) {
+        printf("!e", Root_Err);
+        return [null, Root_Err];
+    }
+
+    return [() => {
+        const hg = HookMap.get(selector);
+
+        if (hg) {
+            if (IsChildOf(Root, hg)) {
+                return hg;
+            }
+        }
+
+        const El = document.querySelector<HTMLElement>(selector);
+
+        return El;
+    }, null]
 }
 
 export function $all<T extends HTMLElement>(
@@ -94,6 +119,10 @@ export interface BoundingBox {
     left: number;
     width: number;
     height: number;
+}
+
+export function IsChildOf(parent: HTMLElement, child: HTMLElement) {
+    return !!(parent.querySelector(child.className));
 }
 
 function ProcessClassName(cls: string): string[] {
