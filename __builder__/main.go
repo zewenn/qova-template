@@ -355,7 +355,8 @@ func build_src() {
 			".jpg": api.LoaderFile,
 			".png": api.LoaderFile,
 		},
-		Write: true,
+		Tsconfig: "./tsconfig.json",
+		Write:    true,
 	})
 
 	if len(result.Errors) != 0 {
